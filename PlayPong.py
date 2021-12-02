@@ -243,6 +243,7 @@ class PlayPong(Game):
                 self.reset()
             
 game = PlayPong()
+
 while not game.GAME_OVER:
     time.sleep(1.0/60.0)
     game.update()

@@ -26,7 +26,6 @@ class PlaySnake(Game):
 
         self.WINDOW_WIDTH = ww
         self.WINDOW_HEIGHT = wh
-        self.bounds = Bounds(-w/2,-h/2,w/2,h/2)
         self.topology = topology
 
         # Populate the world with creatures
@@ -38,14 +37,6 @@ class PlaySnake(Game):
         self.root.title(name)
         self.content = Frame.__init__(self, self.root, width=1600,height=900)
         self.canvas = Canvas(self.content, width=1280, height=700,background='gray75',offset='nw')
-        self.snakey = Canvas(self.content, width=1600, height=320)
-        self.scorer = Canvas(self.content, width=200, height=900)
-        self.canvas.grid(column=1,row=1,sticky='NW')
-        self.snakey.grid(column=1,row=2,columnspan=2,sticky='NE')
-        self.scorer.grid(column=2,row=1,sticky='S')
-
-
-
 
         # Handle mouse pointer motion and keypress events.
         self.mouse_position = Point2D(0.0,0.0)
@@ -55,7 +46,20 @@ class PlaySnake(Game):
         self.canvas.bind('<ButtonRelease-1>',self.handle_mouse_release)
         self.bind_all('<Key>',self.handle_keypress)
 
-
+    def handle_keypress(self, event):
+        Game.handle_keypress(self,event)
+        if event.char == '':
+            pass
+        elif event.char == '':
+            pass
+        elif event.char == '':
+            pass
+        elif event.char == '':
+            pass
+        elif event.char == ' ':
+            pass
+    def reset(self,event):
+        pass
 
 
 #Snake agent (Snake and Head/Body subclasses)
@@ -70,9 +74,19 @@ class snakeBody(Snake):
 class Apple(Agent):
     pass
 
-
+# Open
+# Info
+##In Game
 game = PlaySnake("Snake!", 1600, 900, 1600, 900, topology='bound')
-
+snakey = Canvas(game.content, width=1600, height=320)
+scorer = Canvas(game.content, width=200, height=900)
+game.canvas.grid(column=1,row=1,sticky='NW')
+snakey.grid(column=1,row=2,columnspan=2,sticky='NE')
+scorer.grid(column=2,row=1,sticky='S')
 while not game.GAME_OVER:
     time.sleep(1.0/60.0)
     game.update()
+
+# Gameover
+
+#HiScore
