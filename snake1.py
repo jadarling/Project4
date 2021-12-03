@@ -36,7 +36,8 @@ class PlaySnake(Game):
         self.root = Tk()
         self.root.title(name)
         self.content = Frame.__init__(self, self.root, width=1600,height=900)
-        self.canvas = Canvas(self.content, width=1280, height=700,background='gray75',offset='nw')
+        self.canvas = Canvas(self.content, width=1280, height=700,offset='nw')
+        self.canvas.configure(background='purple')
 
         # Handle mouse pointer motion and keypress events.
         self.mouse_position = Point2D(0.0,0.0)
@@ -48,16 +49,17 @@ class PlaySnake(Game):
 
     def handle_keypress(self, event):
         Game.handle_keypress(self,event)
-        if event.char == '':
+        if event.char == '<up>':
             pass
-        elif event.char == '':
+        elif event.char == '<down>':
             pass
-        elif event.char == '':
+        elif event.char == '<left>':
             pass
-        elif event.char == '':
+        elif event.char == '<right>':
             pass
-        elif event.char == ' ':
+        elif event.char == '<space>':
             pass
+
     def reset(self,event):
         pass
 
@@ -80,9 +82,9 @@ class Apple(Agent):
 game = PlaySnake("Snake!", 1600, 900, 1600, 900, topology='bound')
 snakey = Canvas(game.content, width=1600, height=320)
 scorer = Canvas(game.content, width=200, height=900)
-game.canvas.grid(column=1,row=1,sticky='NW')
-snakey.grid(column=1,row=2,columnspan=2,sticky='NE')
-scorer.grid(column=2,row=1,sticky='S')
+game.canvas.grid(column=1,row=1,columnspan=2, rowspan=2, sticky='NW')
+snakey.grid(column=1,row=3,columnspan=3,sticky='S')
+scorer.grid(column=3,row=1,sticky='NE')
 while not game.GAME_OVER:
     time.sleep(1.0/60.0)
     game.update()
