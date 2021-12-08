@@ -36,6 +36,12 @@ class playSnake:
         self.numberOfRow=18
         self.numberOfCol=18
         self.ticks_before_start=100
+        self.score=0
+        self.draw_grid()
+        snakeHead(self,18)
+        snakeHead(self,35)
+        snakeHead(self,324)
+        snakeHead(self,124)
 # Canvas Functions 
     def clear(self):
         self.Game.delete('all')
@@ -48,13 +54,24 @@ class playSnake:
     def coordtocell(self,x,y):
         return(y-40)//40*18 + (x//40)
     def celltocoord(self, cell):
-        x = cell%18
-        y = cell//18
+        if cell%18 == 0:
+            x = 720
+        elif cell%18 ==1:
+            x = 40
+        else: 
+            x = (cell%18)*40
+        if cell in topBounds:
+            y = 40
+        elif cell in botBounds:
+            y = 720
+        else:
+            y = ((cell//18)+1)*40
+        print(x,y)
         return x, y
 # Agent Stuff
-    def draw_agent(self, cell, color):
-        x,y = self.coordtocell(cell)
-        self.Game.create_rectangle(x-40,y-40,x+1,y+1, fill=color)
+    def draw_agent(self, agent):
+        x,y = self.celltocoord(agent.cell)
+        self.Game.create_rectangle(x-40,y-40,x,y, fill=agent.color)
 
     def add(self, agent):
         self.agents.append(agent)
@@ -75,7 +92,7 @@ class playSnake:
             agent.update()
         self.clear()
         for agent in self.agents:
-            self.draw_agent(agent.position,agent.color)
+            self.draw_agent(agent.cell,agent.color)
         Frame.update(self)
 
 
@@ -94,9 +111,10 @@ class snakeHead(snake):
         snake.__init__(self,world,cell)
         self.color='#233DFF'
         self.parent=None
-        self.cell = 150
+        self.cell = cell
         self.direction=None
         self.body = []
+        world.draw_agent(self)
     def add(self, bit):
         self.body.append(bit)
     def checkHit(self):
