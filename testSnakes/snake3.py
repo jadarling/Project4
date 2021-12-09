@@ -27,7 +27,7 @@ class intro(tk.Frame):
     def __init__(self,master):
         tk.Frame.__init__(self,master,class_='intro')
         self.configure(height=1600,width=900, background='purple')
-        self.grid(row=1,column=1)
+        self.pack()
         label = ttk.Label(master=self,class_='intro', text="fuck you")
         label.configure(background='green',
         anchor='center')

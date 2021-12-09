@@ -13,6 +13,7 @@ botBounds = [307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323
 def cruncher(event):
     root.destroy()
     quit()
+
 def move_on(event, frame):
     for widget in frame.winfo_children():
         widget.destroy()
@@ -22,7 +23,7 @@ class mainFrame(Frame):
     def __init__ (self, master):
         Frame.__init__(self,master)
         self.configure(height=1600,width=900,background='#476042')
-        self.grid(in_=master)
+        self.pack(in_=master)
         self.gameOver = False
 
 #the Game
@@ -183,7 +184,6 @@ if __name__ =='__main__':
     root.geometry('1600x900')
     mained=mainFrame(root)
     gamer = playSnake(master=mained)
-
     while not mained.gameOver:
         time.sleep(1.0/60.0)
         mained.mainloop()
