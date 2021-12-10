@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from Game import Game, Agent
 from geometry import Bounds
+from threading import *
 
 import math
 import random
@@ -29,20 +30,18 @@ class mainFrame(Frame):
 #the Game
 class playSnake:
     def __init__(self,master):
+        self.master = master
         self.Game= Canvas(master)
         self.Game.configure(height=720,width=720,bg='#6A7B76')
         self.Game.grid(in_=master,column=2, row=1, sticky='nesw')
-        self.Game.bind_all('<Key>',self.handle_keypress)
+
         self.agents = []
         self.numberOfRow=18
         self.numberOfCol=18
         self.ticks_before_start=100
         self.score=0
-        self.draw_grid()
-        snakeHead(self,18)
-        snakeHead(self,35)
-        snakeHead(self,324)
-        snakeHead(self,124)
+        self.snake = snakeHead(self,124)
+
 # Canvas Functions 
     def clear(self):
         self.Game.delete('all')
@@ -67,7 +66,6 @@ class playSnake:
             y = 720
         else:
             y = ((cell//18)+1)*40
-        print(x,y)
         return x, y
 # Agent Stuff
     def draw_agent(self, agent):
@@ -76,48 +74,72 @@ class playSnake:
 
     def add(self, agent):
         self.agents.append(agent)
+
 # Game Logic 
     def handle_keypress(self,event):
-        if event.char == '<KP_left>':
-            pass
-        if event.char == '<KP_left>':
-            pass
-        if event.char == '<KP_left>':
-            pass
-        if event.char == '<KP_left>':
-            pass  
+        if event.char == 'q':
+            cruncher(event)
+        self.snake.handle_keypress(event)
 
 
     def update(self):
+        print("here")
+        if self.snake.direction == None:
+            pass
         for agent in self.agents:
             agent.update()
         self.clear()
         for agent in self.agents:
-            self.draw_agent(agent.cell,agent.color)
-        Frame.update(self)
+            self.draw_agent(agent)
+        self.Game.update()
 
 
 #the Snake bits
 class snake:
-    def __init__(self, world, cell):
-        self.cell=cell
+    def __init__(self, world):
+        self.cell=0
         self.world=world 
         self.world.add(self)
         self.ticks=0
         self.color='#03800d'
     def update(self):
         pass
+class snakeBody(snake):
+    def __init__(self,world,parent, head):
+        snake.__init__(self,world)
+        self.parent = parent
+        self.child = None
+        self.cell = self.parent.child
+        self.parent.child = self
+        self.is_tail = True
+        self.head = head
+        self.head.body.append(self.cell)
+        
+    
+    def update(self):
+        self.ticks+=1
+        self.child = self.cell
+        self.cell = self.parent.cell
+        if self.child == type(int):
+            self.is_tail = True
+        else:
+            self.is_tail = False
+
+
 class snakeHead(snake):
     def __init__(self,world,cell):
-        snake.__init__(self,world,cell)
+        snake.__init__(self,world)
         self.color='#233DFF'
         self.parent=None
-        self.cell = cell
+        self.child = self.cell
         self.direction=None
         self.body = []
+        self.cell = cell
         world.draw_agent(self)
+    
     def add(self, bit):
         self.body.append(bit)
+
     def checkHit(self):
         if self.cell%18 == 1 and self.direction == 'left':
             pass
@@ -128,40 +150,60 @@ class snakeHead(snake):
         elif self.cell in botBounds and self.direction == 'down':
             pass
         for body in self.body:
-            if self.cell == body.cell:
+            if self.cell == body:
                 pass
-
+    def handle_keypress(self,event):
+        if event.char == 'a':
+            self.direction = 'left'
+            print(self.direction)
+            print(self.cell)
+        if event.char == 'd':
+            self.direction = 'right'
+            print(self.direction)
+            print(self.cell)
+        if event.char == 'w':
+            self.direction = 'up'
+            print(self.direction)
+            print(self.cell)
+        if event.char == 's':
+            self.direction = 'down'
+            print(self.direction)
+            print(self.cell)
+    
     def moveUp(self):
         if self.checkHit() == False: 
             pass
         else:    
-            self.cell =- 18
+            self.cell -= 18
     def moveDown(self):
         if self.checkHit() == False: 
             pass
         else:    
-            self.cell =+ 18
+            self.cell += 18
     def moveLeft(self):
         if self.checkHit() == False: 
             pass
         else:    
-            self.cell =- 1
+            self.cell -= 1
     def moveRight(self):
         if self.checkHit() == False: 
             pass
         else:    
-            self.cell =+ 1
+            self.cell += 1
 
     def update(self):
-        self.checkHit()
+        self.ticks+=1
+        if self.direction == 'left':
+            self.moveLeft()
+        if self.direction == 'right':
+            self.moveRight()
+        if self.direction == 'up':
+            self.moveUp()
+        if self.direction == 'down':
+            self.moveDown()
+        for body in self.body:
+            pass
 
-class snakeBody(snake):
-    def __init__(self,parent,world):
-        snake.__init__(self,world,parent.position)
-        self.parent=parent
-        snakeHead.body.add(self)
-    def update(self):
-        pass
     
 
 #The Apple
@@ -179,11 +221,13 @@ class apple:
 #Running the Game
 if __name__ =='__main__':
     root = Tk()
-    root.bind_all('<q>',cruncher)
+
     root.title('Snake!')
     root.geometry('1600x900')
     mained=mainFrame(root)
     gamer = playSnake(master=mained)
+    root.bind_all('<Key>',gamer.handle_keypress)
     while not mained.gameOver:
+        gamer.update()
         time.sleep(1.0/60.0)
-        mained.mainloop()
+
