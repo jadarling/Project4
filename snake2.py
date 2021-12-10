@@ -2,8 +2,8 @@ from tkinter import *
 from tkinter import ttk
 from Game import Game, Agent
 from geometry import Bounds
-from threading import *
 
+import threading
 import math
 import random
 import time
@@ -80,14 +80,15 @@ class playSnake:
         if event.char == 'q':
             cruncher(event)
         self.snake.handle_keypress(event)
-
+    def game_over(self):
+        self.clear()
+        mained.gameOver = True
+        print("You lost :(")
 
     def update(self):
-        print("here")
+
         if self.snake.direction == None:
             pass
-        for agent in self.agents:
-            agent.update()
         self.clear()
         for agent in self.agents:
             self.draw_agent(agent)
@@ -129,47 +130,58 @@ class snakeBody(snake):
 class snakeHead(snake):
     def __init__(self,world,cell):
         snake.__init__(self,world)
+        self.world = world
         self.color='#233DFF'
         self.parent=None
         self.child = self.cell
         self.direction=None
         self.body = []
         self.cell = cell
-        world.draw_agent(self)
+        self.speed= 1/4
+        self.world.draw_agent(self)
+     
     
     def add(self, bit):
         self.body.append(bit)
 
     def checkHit(self):
         if self.cell%18 == 1 and self.direction == 'left':
-            pass
+            Tk.after(self.world,ms=20, func=self.world.game_over())
         elif self.cell%18 == 0 and self.direction == 'right':
-            pass
+            Tk.after(self.world,ms=20, func=self.world.game_over())
         elif self.cell in topBounds and self.direction == 'up':
-            pass
+            Tk.after(self.world,ms=20, func=self.world.game_over())
         elif self.cell in botBounds and self.direction == 'down':
-            pass
+            Tk.after(self.world,ms=20, func=self.world.game_over())
         for body in self.body:
-            if self.cell == body:
-                pass
+            if body == type(int):
+                if self.cell == body:
+                    Tk.after(self.world,ms=20, func=self.world.game_over())
+            if self.cell == body.cell:
+                Tk.after(self.world,ms=20, func=self.world.game_over())
+
     def handle_keypress(self,event):
         if event.char == 'a':
             self.direction = 'left'
+            
             print(self.direction)
             print(self.cell)
         if event.char == 'd':
             self.direction = 'right'
+            
             print(self.direction)
             print(self.cell)
         if event.char == 'w':
             self.direction = 'up'
+            
             print(self.direction)
             print(self.cell)
         if event.char == 's':
             self.direction = 'down'
+            
             print(self.direction)
             print(self.cell)
-    
+#Movement Functions
     def moveUp(self):
         if self.checkHit() == False: 
             pass
@@ -192,6 +204,9 @@ class snakeHead(snake):
             self.cell += 1
 
     def update(self):
+        for body in self.body:
+            if body is not type(int):
+                body.update()
         self.ticks+=1
         if self.direction == 'left':
             self.moveLeft()
@@ -229,5 +244,6 @@ if __name__ =='__main__':
     root.bind_all('<Key>',gamer.handle_keypress)
     while not mained.gameOver:
         gamer.update()
-        time.sleep(1.0/60.0)
+        gamer.snake.update()
+        time.sleep(12.0/60.0)
 
