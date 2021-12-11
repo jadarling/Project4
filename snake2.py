@@ -7,9 +7,11 @@ import threading
 import math
 import random
 import time
-# define bounds
+# define constants
 topBounds = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 botBounds = [307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324]
+
+
 #App destroy command
 def cruncher(event):
     root.destroy()
@@ -40,7 +42,11 @@ class playSnake:
         self.numberOfCol=18
         self.ticks_before_start=100
         self.score=0
+
         self.snake = snakeHead(self,124)
+        self.tail = self.snake
+        self.apple = apple(self,self.snake)
+        
 
 # Canvas Functions 
     def clear(self):
@@ -86,12 +92,16 @@ class playSnake:
         print("You lost :(")
 
     def update(self):
-
         if self.snake.direction == None:
             pass
+        self.apple.checkHit(self.snake)
         self.clear()
         for agent in self.agents:
             self.draw_agent(agent)
+        for agent in self.agents: 
+            if type(agent) == snake:
+                if agent.is_tail == True: 
+                    agent = self.tail
         self.Game.update()
 
 
@@ -119,7 +129,8 @@ class snakeBody(snake):
     
     def update(self):
         self.ticks+=1
-        self.child = self.cell
+        if self.is_tail == True:
+            self.child = self.cell
         self.cell = self.parent.cell
         if self.child == type(int):
             self.is_tail = True
@@ -135,7 +146,7 @@ class snakeHead(snake):
         self.parent=None
         self.child = self.cell
         self.direction=None
-        self.body = []
+        self.body = [self.cell]
         self.cell = cell
         self.speed= 1/4
         self.world.draw_agent(self)
@@ -146,93 +157,78 @@ class snakeHead(snake):
 
     def checkHit(self):
         if self.cell%18 == 1 and self.direction == 'left':
-            Tk.after(self.world,ms=20, func=self.world.game_over())
+            self.world.game_over()
         elif self.cell%18 == 0 and self.direction == 'right':
-            Tk.after(self.world,ms=20, func=self.world.game_over())
+            self.world.game_over()
         elif self.cell in topBounds and self.direction == 'up':
-            Tk.after(self.world,ms=20, func=self.world.game_over())
+            self.world.game_over()
         elif self.cell in botBounds and self.direction == 'down':
-            Tk.after(self.world,ms=20, func=self.world.game_over())
+            self.world.game_over()
         for body in self.body:
-            if body == type(int):
                 if self.cell == body:
-                    Tk.after(self.world,ms=20, func=self.world.game_over())
-            if self.cell == body.cell:
-                Tk.after(self.world,ms=20, func=self.world.game_over())
+                    self.world.game_over()
+
 
     def handle_keypress(self,event):
         if event.char == 'a':
-            self.direction = 'left'
-            
-            print(self.direction)
-            print(self.cell)
+            self.direction = 'left'   
         if event.char == 'd':
             self.direction = 'right'
-            
-            print(self.direction)
-            print(self.cell)
         if event.char == 'w':
             self.direction = 'up'
-            
-            print(self.direction)
-            print(self.cell)
         if event.char == 's':
             self.direction = 'down'
-            
-            print(self.direction)
-            print(self.cell)
+
 #Movement Functions
-    def moveUp(self):
-        if self.checkHit() == False: 
-            pass
-        else:    
+    def move(self):
+        if self.direction == 'up':   
             self.cell -= 18
-    def moveDown(self):
-        if self.checkHit() == False: 
-            pass
-        else:    
+        elif self.direction == 'down':
             self.cell += 18
-    def moveLeft(self):
-        if self.checkHit() == False: 
-            pass
-        else:    
+        elif self.direction == 'left':   
             self.cell -= 1
-    def moveRight(self):
-        if self.checkHit() == False: 
-            pass
-        else:    
+        elif self.direction == 'right':
             self.cell += 1
 
     def update(self):
-        for body in self.body:
-            if body is not type(int):
-                body.update()
+        for agent in self.world.agents:
+            self.world.draw_agent(agent)
         self.ticks+=1
-        if self.direction == 'left':
-            self.moveLeft()
-        if self.direction == 'right':
-            self.moveRight()
-        if self.direction == 'up':
-            self.moveUp()
-        if self.direction == 'down':
-            self.moveDown()
+        if self.direction != None:
+            self.checkHit()
+            self.move()
+            print(self.child)
+            time.sleep(7.0/60.0)
         for body in self.body:
             pass
-
+ 
     
 
 #The Apple
 class apple:
-    def __init__(self,world,position):
-        self.position= position
+    def __init__(self,world,head):
         self.world=world
+        self.snake = head
         self.world.add(self)
         self.ticks=0
         self.color= '#c20d0a'
         self.cell= 153
+    def checkHit(self,snake):
+        if snake.cell == self.cell:
+            self.pickedUp(snake)
+
+    def pickedUp(self,snake):
+        possible = range(0,324)
+        self.cell = random.choice(possible) 
+        if self.cell in self.snake.body:
+            self.pickedUp(self,snake)
+        snakeBody(self.world,self.world.tail,self.snake)
+        self.world.score +=10
+        print("desolation. i have no more left to give.")
+
+
     def update(self):
         pass
-
 #Running the Game
 if __name__ =='__main__':
     root = Tk()
@@ -245,5 +241,5 @@ if __name__ =='__main__':
     while not mained.gameOver:
         gamer.update()
         gamer.snake.update()
-        time.sleep(12.0/60.0)
+        time.sleep(1.0/60.0)
 
