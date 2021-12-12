@@ -13,12 +13,12 @@ GRID_WIDTH = 18
 GRID_HEIGHT = 18
 SQUARE_SIZE = 40
 ALL_CELLS =[
-1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,
-19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,
-37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,
-55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,
-73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,
-91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,
+  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+ 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+ 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
+ 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72,
+ 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
+ 91, 92, 93, 94, 95, 96, 97, 98, 99,100,101,102,103,104,105,106,107,108,
 109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,
 127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,
 145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,
@@ -145,13 +145,14 @@ class Play:
         print(":(")
 
 #HELPERS 
-    def add(self, snakePart):
+    def add_me(self, snakePart):
         self.snake_list.append(snakePart)
+    def add_location(self, snakePart):
+        self.snake_location.append(snakePart.location)
     def new_body(self, tail):
         self.snake_number += 1
         tail.child         = snakeBody(self, tail)
         self.tail          =  tail.child
-
     def apple_locations(self):
         appleCell = random.choice(ALL_CELLS)
         if appleCell in self.snake_location or appleCell == self.apple.old_location:
@@ -165,9 +166,12 @@ class Play:
 
 #UPDATE
     def update(self):
+        if self.head.direction is None:
+            return
         #UPDATE LOCATIONS
         self.snake_location.clear()
         self.head.update()
+        self.clear()
         for snake in self.snake_list:
             self.draw_agent(snake)
         self.draw_agent(self.apple)
@@ -176,12 +180,10 @@ class Play:
             self.apple.eat_me()
             self.new_body(self.tail)
             pass
-        print(self.head.location)
         if check_wall(self.head.location) == True:
             self.game_over_son()
-            print("fuck you")
-        print("updated")
         
+
         
 
 #SNAKE SUPER CLASS
@@ -189,11 +191,8 @@ class Snake:
     def __init__(self, world):
         self.world    = world
         self.color    = SNAKE_COLOR
-        self.location = 0
         self.child    = None
-        world.tail    = self
-        world.snake_list.append(self)
-        world.snake_location.append(self.location)
+        self.world.tail    = self
 
 #SNAKE HEAD CLASS
 class snakeHead(Snake):
@@ -203,6 +202,9 @@ class snakeHead(Snake):
         self.direction = None
         self.location = SNAKE_START_CELL
         self.old_location = 0
+        self.world.add_me(self)
+        self.world.add_location(self)
+
         #WHO
         world.head    = self
         world.tail    = self
@@ -211,33 +213,27 @@ class snakeHead(Snake):
 
 #HANDLE KEYPRESS/MOVE
     def handle_keypress(self,event):
-        if event.char == CANT_MOVE[self.direction]:
-            pass
-        else:
-            if event.char == 'a':
-                self.direction = 'left' 
-                print(self.direction)
-            if event.char == 'd':
-                self.direction = 'right'
-                print(self.direction)
-            if event.char == 'w':
-                self.direction = 'up'
-                print(self.direction)
-            if event.char == 's':
-                self.direction = 'down'
-                print(self.direction)
+        if event.char == 'a':
+            self.direction = 'left' 
+        if event.char == 'd':
+            self.direction = 'right'
+        if event.char == 'w':
+            self.direction = 'up'
+        if event.char == 's':
+            self.direction = 'down'
+
 
     def move(self):
+
         self.old_location = self.location
         self.location += MOVES[self.direction]
 
 #UPDATE - SNAKE HEAD
     def update(self):
-        if self.direction != None:
-            self.move()
-            self.world.snake_location.append(self.location)
-            if self.child is type(Snake):
-                self.child.update()
+        self.move()
+        self.world.add_location(self)
+        if self.child is not None:
+            self.child.update()
 
 #SNAKE BODY CLASS
 class snakeBody(Snake):
@@ -245,20 +241,18 @@ class snakeBody(Snake):
         super().__init__(world)
         self.parent = parent
         self.parent.child = self
-        self.location = world.tail.old_location
+        self.location = self.parent.old_location
         self.old_location = 0
+        self.world.add_me(self)
+        self.world.add_location(self)
 
 #UPDATE - SNAKE BODY
     def update(self):
         self.old_location = self.location
         self.location = self.parent.old_location
-        self.world.snake_location.append(self.location)
-
-        if check_collision(self.world.head.location, self.location) == True:
-            self.world.GAME_OVER = True
-            return
+        self.world.add_location(self)
         if self.child is not None:
-            self.update(self.child)
+            self.child.update()
 
 
 class Apple:
@@ -271,6 +265,7 @@ class Apple:
         world.draw_agent(self)
 
     def eat_me(self):
+        
         self.location = self.world.apple_locations()
         self.world.score += SCORE_INCREMENT
         self.world.draw_agent(self)
@@ -283,8 +278,8 @@ if __name__ =='__main__':
     root.geometry('1600x900')
     gamer = Play(master=root)
     root.bind_all('<Key>', gamer.handle_keypress)
+    
     while not gamer.GAME_OVER:
         gamer.update()
-        time.sleep(1.0/60.0)
-        root.mainloop()
-
+        time.sleep(DELAY/60.0)
+        root.update()
