@@ -232,7 +232,6 @@ class apple:
 #Running the Game
 if __name__ =='__main__':
     root = Tk()
-
     root.title('Snake!')
     root.geometry('1600x900')
     mained=mainFrame(root)
