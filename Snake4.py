@@ -71,7 +71,7 @@ CANT_MOVE_BACK = {
 #OTHER 
 START_SCORE = 0
 SCORE_INCREMENT = 10
-DELAY = 2.0
+DELAY = 8.0
 
 #DEBUG
 gameOver = False
@@ -167,7 +167,7 @@ class Play:
         self.draw_agent(self.tail)
     def apple_locations(self):
         appleCell = random.choice(ALL_CELLS)
-        if appleCell in self.snake_location or appleCell == self.apple.old_location:
+        if appleCell is None or appleCell in self.snake_location:
             self.apple_locations()
         else:
             return appleCell
@@ -236,15 +236,6 @@ class snakeHead(Snake):
                 self.direction = 'down'
     def move(self):
         self.old_location = self.location
-        if self.location in BOTTOM_BOUNDS and self.direction == 'down':
-            self.world.game_over_son()
-        if self.location in UPPER_BOUNDS and self.direction == 'up':
-            self.world.game_over_son()
-        if self.location % 18 == 1 and self.direction == 'left':
-            self.world.game_over_son()
-        if self.location % 18 == 0 and self.direction == 'right':
-            self.world.game_over_son()
-
         self.location += MOVES[self.direction]
 
     def check_wall(self):
@@ -260,7 +251,10 @@ class snakeHead(Snake):
 
 #UPDATE - SNAKE HEAD
     def update(self):
+        if self.check_wall() is True:
+            self.world.game_over_son()
         self.move()
+        print(self.location, self.direction)
         self.world.add_location(self)
         if self.child is not None:
             self.child.update()
@@ -280,6 +274,8 @@ class snakeBody(Snake):
     def update(self):
         self.old_location = self.location
         self.location = self.parent.old_location
+        if check_collision(self.world.head.location,self.location) is True:
+            self.world.game_over_son()
         self.world.add_location(self)
         if self.child is not None:
             self.child.update()
@@ -297,6 +293,7 @@ class Apple:
     def eat_me(self):
         self.old_location = self.location
         self.location = self.world.apple_locations()
+        print(self.location)
         self.world.score += SCORE_INCREMENT
         self.world.draw_agent(self)
 
