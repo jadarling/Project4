@@ -32,6 +32,7 @@ ALL_CELLS =[
 289,290,291,292,293,294,295,296,297,298,299,300,301,302,303,304,305,306,
 307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324]
 
+
 UPPER_BOUNDS  = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 BOTTOM_BOUNDS = [307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324]
 
@@ -43,6 +44,7 @@ GAME_COLOR  = '#000000'
 #CELLS/MOVEMENT
 SNAKE_START_CELL = 223
 APPLE_START_CELL = 228
+
 MOVES = {
     None : 0,
     "right":  1,
@@ -57,14 +59,23 @@ CANT_MOVE = {
     "up"   : 's',
     "down" : 'w'
     }
+CANT_MOVE_BACK = {
+    't' : None,
+    'a' : "right",
+    'd' : "left",
+    's' : "up",
+    'w' : "down",
+    }
+
 
 #OTHER 
 START_SCORE = 0
 SCORE_INCREMENT = 10
-DELAY = 30.0
+DELAY = 2.0
 
 #DEBUG
 gameOver = False
+
 #GLOBAL METHODS
 def coordtocell(x,y):
     return(y)//40*18 + ((x//40)+1)
@@ -75,13 +86,13 @@ def celltocoord(cell):
     elif cell%18 ==1:
         x = 0
     else: 
-        x = (cell%18)*40
+        x = (((cell-1)%18)*40)
     if cell in UPPER_BOUNDS:
         y = 0
     elif cell in BOTTOM_BOUNDS:
         y = 680
     else:
-        y = ((cell//18)+1)*40
+        y = (((cell-1)//18)*40)
     return x, y
 def check_collision(cell1, cell2):
     if cell1 == cell2:
@@ -132,15 +143,15 @@ class Play:
 
 #GAME LOGIC
     def handle_keypress(self,event):
-        self.head.handle_keypress(event)
         if event.char == 'q':
             cruncher(event)
+        self.head.handle_keypress(event)
+
 
     def clear(self):
         self.Game.delete('all')
     
     def game_over_son(self):
-        self.clear()
         self.GAME_OVER = True
         print(":(")
 
@@ -153,6 +164,7 @@ class Play:
         self.snake_number += 1
         tail.child         = snakeBody(self, tail)
         self.tail          =  tail.child
+        self.draw_agent(self.tail)
     def apple_locations(self):
         appleCell = random.choice(ALL_CELLS)
         if appleCell in self.snake_location or appleCell == self.apple.old_location:
@@ -174,14 +186,12 @@ class Play:
         self.clear()
         for snake in self.snake_list:
             self.draw_agent(snake)
-        self.draw_agent(self.apple)
         #CHECK 4 COLLISION
         if check_collision(self.head.location, self.apple.location) == True:
             self.apple.eat_me()
             self.new_body(self.tail)
-            pass
-        if check_wall(self.head.location) == True:
-            self.game_over_son()
+        self.draw_agent(self.apple)
+
         
 
         
@@ -213,20 +223,40 @@ class snakeHead(Snake):
 
 #HANDLE KEYPRESS/MOVE
     def handle_keypress(self,event):
-        if event.char == 'a':
-            self.direction = 'left' 
-        if event.char == 'd':
-            self.direction = 'right'
-        if event.char == 'w':
-            self.direction = 'up'
-        if event.char == 's':
-            self.direction = 'down'
-
-
+        if self.direction is CANT_MOVE_BACK[event.char]:
+            return
+        else:
+            if event.char == 'a':
+                self.direction = 'left' 
+            if event.char == 'd':
+                self.direction = 'right'
+            if event.char == 'w':
+                self.direction = 'up'
+            if event.char == 's':
+                self.direction = 'down'
     def move(self):
-
         self.old_location = self.location
+        if self.location in BOTTOM_BOUNDS and self.direction == 'down':
+            self.world.game_over_son()
+        if self.location in UPPER_BOUNDS and self.direction == 'up':
+            self.world.game_over_son()
+        if self.location % 18 == 1 and self.direction == 'left':
+            self.world.game_over_son()
+        if self.location % 18 == 0 and self.direction == 'right':
+            self.world.game_over_son()
+
         self.location += MOVES[self.direction]
+
+    def check_wall(self):
+        if self.location % 18 == 1 and self.direction == 'left':
+            return True
+        if self.location % 18 == 0 and self.direction == 'right':
+            return True
+        if self.location in UPPER_BOUNDS and self.direction == 'up':
+            return True
+        if self.location in BOTTOM_BOUNDS and self.direction == 'down':
+            return True
+        return False
 
 #UPDATE - SNAKE HEAD
     def update(self):
@@ -265,7 +295,7 @@ class Apple:
         world.draw_agent(self)
 
     def eat_me(self):
-        
+        self.old_location = self.location
         self.location = self.world.apple_locations()
         self.world.score += SCORE_INCREMENT
         self.world.draw_agent(self)
@@ -278,8 +308,8 @@ if __name__ =='__main__':
     root.geometry('1600x900')
     gamer = Play(master=root)
     root.bind_all('<Key>', gamer.handle_keypress)
-    
     while not gamer.GAME_OVER:
         gamer.update()
-        time.sleep(DELAY/60.0)
+        time.sleep(1.0/DELAY)
         root.update()
+    root.update()
