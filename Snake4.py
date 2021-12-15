@@ -168,7 +168,7 @@ class Play:
     def apple_locations(self):
         appleCell = random.choice(ALL_CELLS)
         if appleCell is None or appleCell in self.snake_location:
-            self.apple_locations()
+            return self.apple_locations()
         else:
             return appleCell
 #GRAPHICS
@@ -254,7 +254,6 @@ class snakeHead(Snake):
         if self.check_wall() is True:
             self.world.game_over_son()
         self.move()
-        print(self.location, self.direction)
         self.world.add_location(self)
         if self.child is not None:
             self.child.update()
@@ -293,7 +292,6 @@ class Apple:
     def eat_me(self):
         self.old_location = self.location
         self.location = self.world.apple_locations()
-        print(self.location)
         self.world.score += SCORE_INCREMENT
         self.world.draw_agent(self)
 
